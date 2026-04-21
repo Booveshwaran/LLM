@@ -1,0 +1,27 @@
+# Environment
+.env
+__pycache__/
+*.pyc
+*.pyo
+
+# FAISS index (regenerated on first run)
+faiss_index/
+
+# Evaluation results
+eval_results.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/

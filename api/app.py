@@ -1,0 +1,222 @@
+"""
+FastAPI REST interface for the Multi-Agent LLM Collaboration System.
+
+Endpoints:
+  POST /query        — Run a query (synchronous, returns full result)
+  GET  /query/stream — Run a query with SSE streaming (real-time agent progress)
+  GET  /cache-stats  — Return KV-Cache performance statistics
+  GET  /health       — Health check with model routing info
+
+LatentMAS-inspired architecture with compressed inter-agent communication.
+"""
+
+from __future__ import annotations
+
+import os
+import time
+from typing import Any
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+load_dotenv()
+
+from graph.workflow import run_workflow, run_workflow_streaming
+from memory.kv_cache import get_global_cache
+from memory.vector_store import preload_global_store
+from router.llm_router import LLM_CONFIG
+
+# ── App initialisation ──────────────────────────────────────────────────────
+
+app = FastAPI(
+    title="Multi-Agent LLM Collaboration System",
+    description=(
+        "A LatentMAS-inspired multi-agent reasoning framework with compressed "
+        "inter-agent communication, RAG retrieval, and SSE streaming."
+    ),
+    version="2.0.0",
+)
+
+# ── CORS middleware ─────────────────────────────────────────────────────────
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ── Preload FAISS on startup ────────────────────────────────────────────────
+
+@app.on_event("startup")
+async def startup_preload():
+    """Eagerly load embedding model + FAISS index at server startup."""
+    import threading
+    threading.Thread(target=preload_global_store, daemon=True).start()
+
+
+# ── Request / Response schemas ──────────────────────────────────────────────
+
+class QueryRequest(BaseModel):
+    query: str = Field(..., min_length=1, description="The question or task to process.")
+    mock: bool = Field(
+        default=False,
+        description="If true, uses mock LLMs (no API keys required).",
+    )
+
+
+class QueryResponse(BaseModel):
+    final_answer: str
+    reasoning_trace: list[str]
+    token_stats: dict[str, Any]
+    latency_seconds: float
+    retry_count: int
+
+
+class CacheStatsResponse(BaseModel):
+    cache_size: int
+    max_size: int
+    total_requests: int
+    cache_hits: int
+    cache_misses: int
+    hit_rate: float
+    estimated_tokens_saved: int
+    estimated_cost_saved_usd: float
+
+
+class HealthResponse(BaseModel):
+    status: str
+    models: dict[str, str]
+    api_keys_configured: dict[str, bool]
+
+
+# ── Endpoints ────────────────────────────────────────────────────────────────
+
+@app.post("/query", response_model=QueryResponse)
+async def process_query(request: QueryRequest) -> QueryResponse:
+    """Run a query through the full multi-agent workflow (synchronous)."""
+    # ── Fast-path mock for UI testing ───────────────────────────────────
+    if request.mock:
+        return QueryResponse(
+            final_answer=(
+                "[MOCK] This is a stub answer for testing the UI without API keys."
+            ),
+            reasoning_trace=[
+                "[Planner] Decomposed query into 3 steps in 0.0s",
+                "[Researcher] Retrieved 5 RAG documents in 0.0s",
+                "[Critic] Score: 8/10 — APPROVED (0 issues) in 0.0s",
+                "[Solver] Generated final answer in 0.0s",
+            ],
+            token_stats={
+                "cache_hits": 2,
+                "cache_misses": 1,
+                "estimated_tokens_saved": 120,
+            },
+            latency_seconds=0.0,
+            retry_count=0,
+        )
+
+    try:
+        t0 = time.time()
+        result = run_workflow(query=request.query, mock=False)
+        elapsed = round(time.time() - t0, 2)
+
+        return QueryResponse(
+            final_answer=result.get("final_answer", "No answer generated."),
+            reasoning_trace=result.get("reasoning_trace", []),
+            token_stats=result.get("token_stats", {}),
+            latency_seconds=elapsed,
+            retry_count=result.get("retry_count", 0),
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Workflow execution failed: {str(exc)}",
+        )
+
+
+@app.get("/query/stream")
+async def stream_query(
+    q: str = Query(..., min_length=1, description="The query to process."),
+    mock: bool = Query(default=False, description="Use mock mode."),
+):
+    """
+    Stream agent progress via Server-Sent Events (SSE).
+
+    Events:
+      - type: agent_update — {agent, status, detail}
+      - type: result — {final_answer, reasoning_trace, token_stats}
+      - type: error — {message}
+    """
+    if mock:
+        # Fast mock SSE stream
+        import json
+        import asyncio
+
+        async def mock_stream():
+            agents = [
+                ("planner", "[Planner] Decomposed query into 3 steps in 0.0s"),
+                ("researcher", "[Researcher] Retrieved 5 RAG documents in 0.0s"),
+                ("critic", "[Critic] Score: 8/10 — APPROVED (0 issues) in 0.0s"),
+                ("refiner", ""),
+                ("solver", "[Solver] Generated final answer in 0.0s"),
+            ]
+            for agent, detail in agents:
+                yield f"data: {json.dumps({'type': 'agent_update', 'agent': agent, 'status': 'running', 'detail': ''})}\n\n"
+                await asyncio.sleep(0.3)
+                status = "skipped" if agent == "refiner" else "done"
+                yield f"data: {json.dumps({'type': 'agent_update', 'agent': agent, 'status': status, 'detail': detail})}\n\n"
+                await asyncio.sleep(0.1)
+
+            yield f"data: {json.dumps({'type': 'result', 'final_answer': '[MOCK] Stub answer for UI testing.', 'reasoning_trace': [a[1] for a in agents if a[1]], 'token_stats': {'cache_hits': 2, 'cache_misses': 1, 'estimated_tokens_saved': 120}, 'retry_count': 0})}\n\n"
+
+        return StreamingResponse(
+            mock_stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    def event_generator():
+        yield from run_workflow_streaming(query=q, mock=False)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.get("/cache-stats", response_model=CacheStatsResponse)
+async def cache_stats() -> CacheStatsResponse:
+    """Return KV-Cache hit/miss/tokens-saved statistics."""
+    stats = get_global_cache().stats()
+    return CacheStatsResponse(**stats)
+
+
+@app.get("/health", response_model=HealthResponse)
+async def health_check() -> HealthResponse:
+    """Health check — reports model routing and API key status."""
+    models = {
+        agent: cfg["model"]
+        for agent, cfg in LLM_CONFIG.items()
+    }
+    api_keys = {
+        agent: bool(os.getenv(cfg["env_key"]))
+        for agent, cfg in LLM_CONFIG.items()
+    }
+    return HealthResponse(
+        status="ok",
+        models=models,
+        api_keys_configured=api_keys,
+    )
+
+
+# ── Run directly ────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
