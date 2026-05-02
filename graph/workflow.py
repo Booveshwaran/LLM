@@ -29,6 +29,7 @@ from agents.critic import CriticAgent
 from agents.refiner import RefinerAgent
 from agents.solver import SolverAgent
 from memory.kv_cache import get_global_cache
+from memory.cag import get_global_cag
 from memory.vector_store import VectorStoreManager, get_global_store
 from router.llm_router import get_llm, get_mock_llm
 
@@ -252,7 +253,19 @@ def build_workflow(
 
 
 def run_workflow(query: str, mock: bool = False) -> AgentState:
-    """Build the workflow and run a query through it (synchronous)."""
+    """Build the workflow and run a query through it (synchronous).
+
+    Uses Cache-Augmented Generation (CAG) to return instant answers
+    for semantically similar previously-answered queries.
+    """
+    # CAG lookup — instant answer if similar query was cached
+    cag = get_global_cag()
+    if not mock:
+        cached_response = cag.lookup(query)
+        if cached_response is not None:
+            _emit_event("solver", "done", "Instant answer from CAG cache")
+            return cached_response
+
     cache = get_global_cache()
     workflow = build_workflow(mock=mock)
 
@@ -270,6 +283,11 @@ def run_workflow(query: str, mock: bool = False) -> AgentState:
     }
 
     result = workflow.invoke(initial_state)
+
+    # Store in CAG cache for future queries
+    if not mock and result.get("final_answer"):
+        cag.store(query, dict(result))
+
     return result
 
 

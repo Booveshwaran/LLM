@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Agent LLM System</title>
-    <meta name="description" content="LatentMAS-inspired multi-agent reasoning framework with real-time streaming.">
+    <title>Healthcare AI Clinical Assistant</title>
+    <meta name="description" content="Healthcare multi-agent clinical reasoning system with RAG and Cache-Augmented Generation.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -41,15 +41,15 @@
 
         /* ── Navbar ───────────────────────────────────── */
         .navbar {
-            background: linear-gradient(135deg, #141414 0%, #1a1a2e 100%);
+            background: linear-gradient(135deg, #0a1628 0%, #0d2137 100%);
             padding: 20px 24px;
-            border-bottom: 1px solid #2a2a2a;
+            border-bottom: 1px solid #1a3a5c;
         }
         .navbar h1 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
-        .navbar .subtitle { font-size: 0.85rem; color: #888; }
+        .navbar .subtitle { font-size: 0.85rem; color: #6cb8e6; }
         .navbar .paper-ref {
-            font-size: 0.72rem; color: #6c63ff; margin-top: 4px;
-            opacity: 0.7;
+            font-size: 0.72rem; color: #00c896; margin-top: 4px;
+            opacity: 0.8;
         }
 
         .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
@@ -89,7 +89,7 @@
 
         /* ── Buttons ──────────────────────────────────── */
         #run-btn {
-            background: linear-gradient(135deg, #6c63ff 0%, #5a52d5 100%);
+            background: linear-gradient(135deg, #00a878 0%, #007f5f 100%);
             color: #fff; border: none; border-radius: 8px;
             padding: 12px 32px; font-family: 'Inter', sans-serif;
             font-size: 0.95rem; font-weight: 700; cursor: pointer;
@@ -97,9 +97,9 @@
             gap: 8px; min-width: 120px; justify-content: center;
         }
         #run-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #7b73ff 0%, #6c63ff 100%);
+            background: linear-gradient(135deg, #00c896 0%, #00a878 100%);
             transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(108, 99, 255, 0.35);
+            box-shadow: 0 4px 20px rgba(0, 168, 120, 0.35);
         }
         #run-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -138,7 +138,7 @@
             background: #fff; border-radius: 50%;
             transition: transform 0.3s ease;
         }
-        .toggle-switch input:checked + .toggle-slider { background: #6c63ff; }
+        .toggle-switch input:checked + .toggle-slider { background: #00a878; }
         .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
 
         /* ── Pipeline Cards ───────────────────────────── */
@@ -262,16 +262,16 @@
 </div>
 
 <nav class="navbar">
-    <h1>🤖 Multi-Agent LLM System</h1>
-    <div class="subtitle">Powered by Mistral · NVIDIA LLaMA · LangGraph</div>
-    <div class="paper-ref">Inspired by LatentMAS: Latent Collaboration in Multi-Agent Systems</div>
+    <h1>⚕️ Healthcare AI Clinical Assistant</h1>
+    <div class="subtitle">Powered by Mistral · NVIDIA LLaMA · LangGraph · 100+ Medical RAG Docs</div>
+    <div class="paper-ref">Cache-Augmented Generation · LatentMAS-Inspired · Evidence-Based Clinical Reasoning</div>
 </nav>
 
 <div class="container">
 
     <div class="query-panel">
-        <label for="query-input">Enter your query</label>
-        <textarea id="query-input" placeholder="Ask me anything... e.g. Solve: If a train travels 60km/h for 2 hours, what distance does it cover?"></textarea>
+        <label for="query-input">Enter your clinical query</label>
+        <textarea id="query-input" placeholder="Ask a medical question... e.g. What is the first-line treatment for hypertension? What are the symptoms of diabetic ketoacidosis?"></textarea>
         <div class="controls-row">
             <button id="run-btn" onclick="handleRun()">
                 <span class="spinner" id="spinner"></span>
@@ -289,35 +289,35 @@
     </div>
 
     <div class="pipeline-section">
-        <h2>⚙️ Agent Pipeline</h2>
+        <h2>🏥 Clinical Agent Pipeline</h2>
         <div class="pipeline-row" id="pipeline-row">
             <div class="agent-card" id="card-planner">
-                <div class="agent-icon">📋</div>
-                <div class="agent-name">Planner</div>
+                <div class="agent-icon">🩺</div>
+                <div class="agent-name">Clinical Planner</div>
                 <div class="agent-badge badge-waiting" id="badge-planner">WAITING</div>
                 <div class="agent-preview" id="preview-planner"></div>
             </div>
             <div class="agent-card" id="card-researcher">
-                <div class="agent-icon">🔍</div>
-                <div class="agent-name">Researcher</div>
+                <div class="agent-icon">🤬</div>
+                <div class="agent-name">Medical Researcher</div>
                 <div class="agent-badge badge-waiting" id="badge-researcher">WAITING</div>
                 <div class="agent-preview" id="preview-researcher"></div>
             </div>
             <div class="agent-card" id="card-critic">
-                <div class="agent-icon">⚖️</div>
-                <div class="agent-name">Critic</div>
+                <div class="agent-icon">🔬</div>
+                <div class="agent-name">Medical Reviewer</div>
                 <div class="agent-badge badge-waiting" id="badge-critic">WAITING</div>
                 <div class="agent-preview" id="preview-critic"></div>
             </div>
             <div class="agent-card" id="card-refiner">
-                <div class="agent-icon">✏️</div>
-                <div class="agent-name">Refiner</div>
+                <div class="agent-icon">💉</div>
+                <div class="agent-name">Clinical Refiner</div>
                 <div class="agent-badge badge-waiting" id="badge-refiner">WAITING</div>
                 <div class="agent-preview" id="preview-refiner"></div>
             </div>
             <div class="agent-card" id="card-solver">
-                <div class="agent-icon">🧠</div>
-                <div class="agent-name">Solver</div>
+                <div class="agent-icon">⚕️</div>
+                <div class="agent-name">Medical Advisor</div>
                 <div class="agent-badge badge-waiting" id="badge-solver">WAITING</div>
                 <div class="agent-preview" id="preview-solver"></div>
             </div>
@@ -325,14 +325,14 @@
     </div>
 
     <div id="final-answer">
-        <div class="answer-label">✅ Final Answer</div>
+        <div class="answer-label">⚕️ Clinical Assessment</div>
         <div class="answer-text" id="answer-text"></div>
     </div>
 
     <div class="trace-section">
         <button class="trace-toggle" id="trace-toggle" onclick="toggleTrace()">
             <span class="trace-arrow" id="trace-arrow">▶</span>
-            <span>🔍 Full Reasoning Trace</span>
+            <span>🩺 Clinical Reasoning Trace</span>
         </button>
         <div id="trace-content"></div>
     </div>
@@ -482,8 +482,16 @@
     function showResult(data) {
         stopTimer();
 
-        // Final answer
-        answerText.textContent = data.final_answer || "No answer generated.";
+        // Final answer — extract clean text from JSON if present
+        var answer = data.final_answer || "No answer generated.";
+        try {
+            var parsed = JSON.parse(answer);
+            if (parsed && parsed.answer) answer = parsed.answer;
+        } catch(e) {}
+        // Remove duplicate disclaimers
+        var parts = answer.split(/⚕️\s*Disclaimer:/i);
+        if (parts.length > 2) answer = parts[0] + "⚕️ Disclaimer:" + parts[1];
+        answerText.textContent = answer;
         finalAnswer.classList.add("visible");
 
         // Reasoning trace

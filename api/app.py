@@ -1,13 +1,14 @@
 """
-FastAPI REST interface for the Multi-Agent LLM Collaboration System.
+FastAPI REST interface for the Healthcare Multi-Agent LLM System.
 
 Endpoints:
-  POST /query        — Run a query (synchronous, returns full result)
-  GET  /query/stream — Run a query with SSE streaming (real-time agent progress)
-  GET  /cache-stats  — Return KV-Cache performance statistics
-  GET  /health       — Health check with model routing info
+  POST /query        — Run a clinical query (synchronous)
+  GET  /query/stream — Run with SSE streaming (real-time agent progress)
+  GET  /cache-stats  — KV-Cache statistics
+  GET  /cag-stats    — Cache-Augmented Generation statistics
+  GET  /health       — Health check
 
-LatentMAS-inspired architecture with compressed inter-agent communication.
+Healthcare domain with 100+ medical RAG docs and CAG.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ load_dotenv()
 from graph.workflow import run_workflow, run_workflow_streaming
 from memory.kv_cache import get_global_cache
 from memory.vector_store import preload_global_store
+from memory.cag import get_global_cag
 from router.llm_router import LLM_CONFIG
 
 # ── App initialisation ──────────────────────────────────────────────────────
@@ -102,13 +104,17 @@ async def process_query(request: QueryRequest) -> QueryResponse:
     if request.mock:
         return QueryResponse(
             final_answer=(
-                "[MOCK] This is a stub answer for testing the UI without API keys."
+                "[MOCK] Based on the symptoms described, the differential diagnosis includes "
+                "upper respiratory tract infection, allergic rhinitis, and early-stage pneumonia. "
+                "Recommended: CBC, chest X-ray, and symptom monitoring for 48 hours.\n\n"
+                "⚕️ Disclaimer: This is for educational purposes only. "
+                "Always consult a qualified healthcare professional."
             ),
             reasoning_trace=[
-                "[Planner] Decomposed query into 3 steps in 0.0s",
-                "[Researcher] Retrieved 5 RAG documents in 0.0s",
-                "[Critic] Score: 8/10 — APPROVED (0 issues) in 0.0s",
-                "[Solver] Generated final answer in 0.0s",
+                "[Clinical Planner] Created 4-step diagnostic plan in 0.0s",
+                "[Medical Researcher] Retrieved 5 clinical docs from RAG in 0.0s",
+                "[Medical Reviewer] Score: 9/10 — APPROVED (0 issues) in 0.0s",
+                "[Medical Advisor] Generated clinical answer in 0.0s",
             ],
             token_stats={
                 "cache_hits": 2,
@@ -212,6 +218,12 @@ async def health_check() -> HealthResponse:
         models=models,
         api_keys_configured=api_keys,
     )
+
+
+@app.get("/cag-stats")
+async def cag_stats():
+    """Return Cache-Augmented Generation statistics."""
+    return get_global_cag().stats()
 
 
 # ── Run directly ────────────────────────────────────────────────────────────
