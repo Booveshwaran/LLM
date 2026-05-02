@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healthcare AI Clinical Assistant</title>
-    <meta name="description" content="Multi-agent clinical reasoning system with Cache-Augmented Generation, 100+ medical RAG docs, and real-time streaming.">
+    <title>HealthcareAI — Clinical Intelligence Platform</title>
+    <meta name="description" content="Multi-agent clinical reasoning with Cache-Augmented Generation, 100+ medical RAG docs, and real-time SSE streaming.">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<!-- Custom Cursor -->
+<!-- Cursor -->
 <div class="cursor-dot"></div>
 <div class="cursor-ring"></div>
 
 <!-- Preloader -->
 <div id="preloader">
-    <div class="pulse-ring"></div>
-    <div class="pulse-core"></div>
+    <canvas></canvas>
     <div class="preloader-text">Initializing Clinical AI</div>
 </div>
 
 <!-- Ambient Background -->
 <div class="ambient-bg">
+    <canvas id="bg-canvas"></canvas>
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
     <div class="ambient-orb orb-3"></div>
@@ -46,27 +45,27 @@
     </div>
 </nav>
 
-<!-- Hero Section -->
+<!-- Hero -->
 <section class="hero">
     <div class="hero-badge">
         <span class="dot"></span>
         Multi-Agent Clinical Reasoning
     </div>
     <h1 class="hero-title">
-        <span class="word">Evidence-Based</span>
+        <span class="word">Evidence-Based</span><br>
         <span class="word highlight">Healthcare AI</span>
         <span class="word">Assistant</span>
     </h1>
     <p class="hero-sub">
-        Five specialised AI agents collaborate through a clinical reasoning pipeline — 
-        verified by a Medical Reviewer, grounded in 100+ curated medical documents, 
+        Five specialised AI agents collaborate through a clinical reasoning pipeline —
+        verified by a Medical Reviewer, grounded in 100+ curated medical documents,
         and accelerated by Cache-Augmented Generation.
     </p>
     <div class="hero-stats">
-        <div class="hero-stat"><div class="num">100+</div><div class="label">Medical Docs</div></div>
-        <div class="hero-stat"><div class="num">5</div><div class="label">Clinical Agents</div></div>
-        <div class="hero-stat"><div class="num">15+</div><div class="label">Specialties</div></div>
-        <div class="hero-stat"><div class="num">88%</div><div class="label">CAG Threshold</div></div>
+        <div class="hero-stat"><div class="num" data-value="100+">100+</div><div class="label">Medical Docs</div></div>
+        <div class="hero-stat"><div class="num" data-value="5">5</div><div class="label">Clinical Agents</div></div>
+        <div class="hero-stat"><div class="num" data-value="15+">15+</div><div class="label">Specialties</div></div>
+        <div class="hero-stat"><div class="num" data-value="88%">88%</div><div class="label">CAG Threshold</div></div>
     </div>
 </section>
 
@@ -76,13 +75,11 @@
     <!-- Query Panel -->
     <div class="section-label">Clinical Query Interface</div>
     <div class="query-panel" style="opacity:0;transform:translateY(20px)">
-        <div class="input-wrapper">
-            <textarea id="query-input" placeholder="Ask a medical question...&#10;&#10;Examples:&#10;• What is the first-line treatment for hypertension?&#10;• A patient has TSH of 12 and free T4 of 0.4 — what is the diagnosis?&#10;• What are the symptoms of diabetic ketoacidosis?"></textarea>
-        </div>
+        <textarea id="query-input" placeholder="Ask a medical question...&#10;&#10;Examples:&#10;• What is the first-line treatment for hypertension?&#10;• A patient has TSH of 12 and free T4 of 0.4 — what is the diagnosis?&#10;• What are the symptoms of diabetic ketoacidosis?"></textarea>
         <div class="controls-row">
             <button id="run-btn" onclick="handleRun()">
                 <span class="spinner" id="spinner"></span>
-                <span id="btn-text">▶ Analyze</span>
+                <span id="btn-text">▶ ANALYZE</span>
             </button>
             <div class="toggle-wrapper">
                 <label class="toggle-switch">
@@ -92,42 +89,48 @@
                 <label class="toggle-label" for="mock-toggle">Mock Mode</label>
             </div>
             <div id="elapsed-timer">⏱ 0.0s</div>
+            <div class="kbd-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to analyze</div>
         </div>
     </div>
 
     <!-- Agent Pipeline -->
     <div class="pipeline-section">
         <div class="section-label">Clinical Agent Pipeline</div>
-        <div class="pipeline-row" id="pipeline-row">
+        <div class="pipeline-row">
             <div class="agent-card" id="card-planner">
                 <div class="agent-icon">🩺</div>
                 <div class="agent-name">Clinical Planner</div>
                 <div class="agent-badge badge-waiting" id="badge-planner">WAITING</div>
                 <div class="agent-preview" id="preview-planner"></div>
+                <canvas class="waveform"></canvas>
             </div>
             <div class="agent-card" id="card-researcher">
                 <div class="agent-icon">🧬</div>
                 <div class="agent-name">Medical Researcher</div>
                 <div class="agent-badge badge-waiting" id="badge-researcher">WAITING</div>
                 <div class="agent-preview" id="preview-researcher"></div>
+                <canvas class="waveform"></canvas>
             </div>
             <div class="agent-card" id="card-critic">
                 <div class="agent-icon">🔬</div>
                 <div class="agent-name">Medical Reviewer</div>
                 <div class="agent-badge badge-waiting" id="badge-critic">WAITING</div>
                 <div class="agent-preview" id="preview-critic"></div>
+                <canvas class="waveform"></canvas>
             </div>
             <div class="agent-card" id="card-refiner">
                 <div class="agent-icon">💉</div>
                 <div class="agent-name">Clinical Refiner</div>
                 <div class="agent-badge badge-waiting" id="badge-refiner">WAITING</div>
                 <div class="agent-preview" id="preview-refiner"></div>
+                <canvas class="waveform"></canvas>
             </div>
             <div class="agent-card" id="card-solver">
                 <div class="agent-icon">⚕️</div>
                 <div class="agent-name">Medical Advisor</div>
                 <div class="agent-badge badge-waiting" id="badge-solver">WAITING</div>
                 <div class="agent-preview" id="preview-solver"></div>
+                <canvas class="waveform"></canvas>
             </div>
         </div>
     </div>
@@ -135,6 +138,7 @@
     <!-- Final Answer -->
     <div id="final-answer">
         <div class="answer-label">⚕️ Clinical Assessment</div>
+        <button id="copy-btn" onclick="copyAnswer()">Copy</button>
         <div class="answer-text" id="answer-text"></div>
     </div>
 
@@ -143,6 +147,7 @@
         <button class="trace-toggle" id="trace-toggle" onclick="toggleTrace()">
             <span class="trace-arrow" id="trace-arrow">▶</span>
             <span>🩺 Clinical Reasoning Trace</span>
+            <span class="step-count">0 steps</span>
         </button>
         <div id="trace-content"></div>
     </div>
@@ -150,19 +155,28 @@
     <!-- Cache Stats -->
     <div id="cache-stats">
         <div class="stats-row">
-            <div class="stat-item">Cache Hits: <span id="stat-hits">0</span></div>
-            <div class="stat-divider">│</div>
-            <div class="stat-item">Cache Misses: <span id="stat-misses">0</span></div>
-            <div class="stat-divider">│</div>
-            <div class="stat-item">Tokens Saved: <span id="stat-tokens">~0</span></div>
+            <div class="stat-item">
+                <div class="stat-label">Cache Hits</div>
+                <div class="stat-value teal" id="stat-hits">0</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-label">Cache Misses</div>
+                <div class="stat-value violet" id="stat-misses">0</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-label">Tokens Saved</div>
+                <div class="stat-value gold" id="stat-tokens">~0</div>
+            </div>
         </div>
     </div>
     <div id="latency-tag"></div>
-
 </div>
 
-<!-- GSAP CDN -->
+<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="canvas.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
