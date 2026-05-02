@@ -4,292 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Healthcare AI Clinical Assistant</title>
-    <meta name="description" content="Healthcare multi-agent clinical reasoning system with RAG and Cache-Augmented Generation.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0f0f0f;
-            color: #e0e0e0;
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        /* ── Error Banner ─────────────────────────────── */
-        #error-banner {
-            display: none;
-            background: linear-gradient(135deg, #ff4444 0%, #cc0033 100%);
-            color: #fff;
-            padding: 14px 24px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 1000;
-            animation: slideDown 0.3s ease;
-        }
-        #error-banner.visible { display: block; }
-        #error-close {
-            background: none; border: none; color: #fff;
-            font-size: 1.2rem; cursor: pointer; margin-left: 16px;
-        }
-
-        /* ── Navbar ───────────────────────────────────── */
-        .navbar {
-            background: linear-gradient(135deg, #0a1628 0%, #0d2137 100%);
-            padding: 20px 24px;
-            border-bottom: 1px solid #1a3a5c;
-        }
-        .navbar h1 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
-        .navbar .subtitle { font-size: 0.85rem; color: #6cb8e6; }
-        .navbar .paper-ref {
-            font-size: 0.72rem; color: #00c896; margin-top: 4px;
-            opacity: 0.8;
-        }
-
-        .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
-
-        /* ── Query Panel ──────────────────────────────── */
-        .query-panel { margin-bottom: 32px; }
-        .query-panel label {
-            display: block; font-weight: 600; font-size: 0.95rem;
-            margin-bottom: 10px; color: #ccc;
-        }
-        #query-input {
-            width: 100%; min-height: 100px; max-height: 300px;
-            resize: vertical; background: #111; border: 1px solid #333;
-            border-radius: 10px; color: #e0e0e0;
-            font-family: 'Inter', sans-serif; font-size: 0.95rem;
-            padding: 14px 16px; outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        #query-input:focus {
-            border-color: #6c63ff;
-            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
-        }
-        #query-input.shake { animation: shake 0.4s ease; border-color: #ff4444; }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-6px); }
-            40% { transform: translateX(6px); }
-            60% { transform: translateX(-4px); }
-            80% { transform: translateX(4px); }
-        }
-
-        .controls-row {
-            display: flex; align-items: center; gap: 20px;
-            margin-top: 14px; flex-wrap: wrap;
-        }
-
-        /* ── Buttons ──────────────────────────────────── */
-        #run-btn {
-            background: linear-gradient(135deg, #00a878 0%, #007f5f 100%);
-            color: #fff; border: none; border-radius: 8px;
-            padding: 12px 32px; font-family: 'Inter', sans-serif;
-            font-size: 0.95rem; font-weight: 700; cursor: pointer;
-            transition: all 0.3s ease; display: flex; align-items: center;
-            gap: 8px; min-width: 120px; justify-content: center;
-        }
-        #run-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #00c896 0%, #00a878 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(0, 168, 120, 0.35);
-        }
-        #run-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .spinner {
-            display: none; width: 16px; height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff; border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-        .spinner.visible { display: inline-block; }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-100%); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ── Toggle ───────────────────────────────────── */
-        .toggle-wrapper { display: flex; align-items: center; gap: 10px; }
-        .toggle-label { font-size: 0.85rem; color: #999; cursor: pointer; }
-        .toggle-switch { position: relative; width: 44px; height: 24px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider {
-            position: absolute; cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #333; border-radius: 24px;
-            transition: background 0.3s ease;
-        }
-        .toggle-slider::before {
-            content: ''; position: absolute;
-            width: 18px; height: 18px; left: 3px; bottom: 3px;
-            background: #fff; border-radius: 50%;
-            transition: transform 0.3s ease;
-        }
-        .toggle-switch input:checked + .toggle-slider { background: #00a878; }
-        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
-
-        /* ── Pipeline Cards ───────────────────────────── */
-        .pipeline-section { margin-bottom: 32px; }
-        .pipeline-section h2 {
-            font-size: 1rem; font-weight: 600; color: #aaa;
-            margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .pipeline-row {
-            display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;
-            scrollbar-width: thin; scrollbar-color: #333 transparent;
-        }
-        .agent-card {
-            flex: 0 0 170px; background: #1a1a1a; border: 1px solid #2a2a2a;
-            border-radius: 12px; padding: 16px 14px; transition: all 0.3s ease;
-            min-height: 140px; display: flex; flex-direction: column;
-        }
-        .agent-card .agent-icon { font-size: 1.6rem; margin-bottom: 6px; }
-        .agent-card .agent-name { font-weight: 700; font-size: 0.85rem; color: #ddd; margin-bottom: 8px; }
-        .agent-card .agent-badge {
-            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.5px; padding: 3px 8px; border-radius: 4px;
-            display: inline-block; margin-bottom: 8px; width: fit-content;
-        }
-        .agent-card .agent-preview {
-            font-size: 0.73rem; color: #777; line-height: 1.4; flex: 1;
-            overflow: hidden; display: -webkit-box;
-            -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical;
-        }
-
-        .badge-waiting { background: #2a2a2a; color: #666; }
-        .badge-running { background: rgba(108,99,255,0.15); color: #6c63ff; animation: pulse 1.2s ease infinite; }
-        .badge-done { background: rgba(0,200,150,0.12); color: #00c896; }
-        .badge-skipped { background: #2a2a2a; color: #555; font-style: italic; }
-
-        .agent-card.running { border-color: #6c63ff; box-shadow: 0 0 16px rgba(108,99,255,0.2); }
-        .agent-card.done { border-color: #00c896; box-shadow: 0 0 12px rgba(0,200,150,0.1); }
-
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        /* ── Final Answer ─────────────────────────────── */
-        #final-answer {
-            display: none; background: #1a1a1a;
-            border-left: 4px solid #00c896; border-radius: 0 12px 12px 0;
-            padding: 20px 24px; margin-bottom: 24px; animation: fadeIn 0.4s ease;
-        }
-        #final-answer.visible { display: block; }
-        #final-answer .answer-label {
-            font-size: 0.8rem; font-weight: 700; color: #00c896;
-            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
-        }
-        #final-answer .answer-text {
-            font-size: 1.05rem; color: #eee; line-height: 1.7; white-space: pre-wrap;
-        }
-
-        /* ── Trace ────────────────────────────────────── */
-        .trace-section { margin-bottom: 24px; }
-        .trace-toggle {
-            display: flex; align-items: center; gap: 8px;
-            background: #1a1a1a; border: 1px solid #2a2a2a;
-            border-radius: 10px; padding: 14px 18px; cursor: pointer;
-            transition: all 0.3s ease; width: 100%; text-align: left;
-            color: #ccc; font-family: 'Inter', sans-serif;
-            font-size: 0.9rem; font-weight: 600;
-        }
-        .trace-toggle:hover { border-color: #444; background: #1e1e1e; }
-        .trace-arrow { transition: transform 0.3s ease; font-size: 0.75rem; }
-        .trace-toggle.expanded .trace-arrow { transform: rotate(90deg); }
-
-        #trace-content {
-            display: none; background: #111; border: 1px solid #2a2a2a;
-            border-top: none; border-radius: 0 0 10px 10px;
-            padding: 16px; animation: fadeIn 0.3s ease;
-        }
-        #trace-content.visible { display: block; }
-        .trace-step {
-            font-family: 'Courier New', monospace; font-size: 0.82rem;
-            color: #aaa; padding: 8px 12px; margin-bottom: 6px;
-            background: #161616; border-radius: 6px; border-left: 3px solid #333;
-        }
-        .trace-step:last-child { margin-bottom: 0; }
-
-        /* ── Cache Stats ──────────────────────────────── */
-        #cache-stats {
-            display: none; background: #141414; border: 1px solid #222;
-            border-radius: 10px; padding: 14px 20px; margin-bottom: 24px;
-            animation: fadeIn 0.4s ease;
-        }
-        #cache-stats.visible { display: block; }
-        .stats-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
-        .stat-item { font-size: 0.82rem; color: #888; }
-        .stat-item span { color: #6c63ff; font-weight: 700; }
-        .stat-divider { color: #333; }
-
-        #latency-tag {
-            display: none; font-size: 0.78rem; color: #666;
-            margin-top: 8px; padding: 6px 12px; background: #141414;
-            border-radius: 6px;
-        }
-        #latency-tag.visible { display: inline-block; }
-
-        /* ── Elapsed Timer ────────────────────────────── */
-        #elapsed-timer {
-            display: none; font-size: 0.82rem; color: #6c63ff;
-            font-weight: 600; margin-left: auto;
-        }
-        #elapsed-timer.visible { display: block; }
-
-        @media (max-width: 680px) {
-            .agent-card { flex: 0 0 140px; }
-            .controls-row { flex-direction: column; align-items: flex-start; }
-            .navbar h1 { font-size: 1.25rem; }
-        }
-    </style>
+    <meta name="description" content="Multi-agent clinical reasoning system with Cache-Augmented Generation, 100+ medical RAG docs, and real-time streaming.">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
+<!-- Custom Cursor -->
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- Preloader -->
+<div id="preloader">
+    <div class="pulse-ring"></div>
+    <div class="pulse-core"></div>
+    <div class="preloader-text">Initializing Clinical AI</div>
+</div>
+
+<!-- Ambient Background -->
+<div class="ambient-bg">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+</div>
+
+<!-- Error Banner -->
 <div id="error-banner">
     <span id="error-msg"></span>
     <button id="error-close" onclick="hideError()">&times;</button>
 </div>
 
-<nav class="navbar">
-    <h1>⚕️ Healthcare AI Clinical Assistant</h1>
-    <div class="subtitle">Powered by Mistral · NVIDIA LLaMA · LangGraph · 100+ Medical RAG Docs</div>
-    <div class="paper-ref">Cache-Augmented Generation · LatentMAS-Inspired · Evidence-Based Clinical Reasoning</div>
+<!-- Navigation -->
+<nav class="nav">
+    <a class="nav-brand" href="#">
+        <div class="icon">⚕️</div>
+        <span>HealthcareAI</span>
+    </a>
+    <div class="nav-pills">
+        <button class="nav-pill active">Clinical Query</button>
+        <button class="nav-pill" onclick="window.open('http://localhost:8000/docs','_blank')">API Docs</button>
+        <button class="nav-pill" onclick="window.open('http://localhost:8000/cag-stats','_blank')">CAG Stats</button>
+    </div>
 </nav>
 
-<div class="container">
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-badge">
+        <span class="dot"></span>
+        Multi-Agent Clinical Reasoning
+    </div>
+    <h1 class="hero-title">
+        <span class="word">Evidence-Based</span>
+        <span class="word highlight">Healthcare AI</span>
+        <span class="word">Assistant</span>
+    </h1>
+    <p class="hero-sub">
+        Five specialised AI agents collaborate through a clinical reasoning pipeline — 
+        verified by a Medical Reviewer, grounded in 100+ curated medical documents, 
+        and accelerated by Cache-Augmented Generation.
+    </p>
+    <div class="hero-stats">
+        <div class="hero-stat"><div class="num">100+</div><div class="label">Medical Docs</div></div>
+        <div class="hero-stat"><div class="num">5</div><div class="label">Clinical Agents</div></div>
+        <div class="hero-stat"><div class="num">15+</div><div class="label">Specialties</div></div>
+        <div class="hero-stat"><div class="num">88%</div><div class="label">CAG Threshold</div></div>
+    </div>
+</section>
 
-    <div class="query-panel">
-        <label for="query-input">Enter your clinical query</label>
-        <textarea id="query-input" placeholder="Ask a medical question... e.g. What is the first-line treatment for hypertension? What are the symptoms of diabetic ketoacidosis?"></textarea>
+<!-- Main Content -->
+<div class="main-content">
+
+    <!-- Query Panel -->
+    <div class="section-label">Clinical Query Interface</div>
+    <div class="query-panel" style="opacity:0;transform:translateY(20px)">
+        <div class="input-wrapper">
+            <textarea id="query-input" placeholder="Ask a medical question...&#10;&#10;Examples:&#10;• What is the first-line treatment for hypertension?&#10;• A patient has TSH of 12 and free T4 of 0.4 — what is the diagnosis?&#10;• What are the symptoms of diabetic ketoacidosis?"></textarea>
+        </div>
         <div class="controls-row">
             <button id="run-btn" onclick="handleRun()">
                 <span class="spinner" id="spinner"></span>
-                <span id="btn-text">▶ Run</span>
+                <span id="btn-text">▶ Analyze</span>
             </button>
             <div class="toggle-wrapper">
                 <label class="toggle-switch">
                     <input type="checkbox" id="mock-toggle">
                     <span class="toggle-slider"></span>
                 </label>
-                <label class="toggle-label" for="mock-toggle">Mock Mode — Test without API keys</label>
+                <label class="toggle-label" for="mock-toggle">Mock Mode</label>
             </div>
             <div id="elapsed-timer">⏱ 0.0s</div>
         </div>
     </div>
 
+    <!-- Agent Pipeline -->
     <div class="pipeline-section">
-        <h2>🏥 Clinical Agent Pipeline</h2>
+        <div class="section-label">Clinical Agent Pipeline</div>
         <div class="pipeline-row" id="pipeline-row">
             <div class="agent-card" id="card-planner">
                 <div class="agent-icon">🩺</div>
@@ -298,7 +106,7 @@
                 <div class="agent-preview" id="preview-planner"></div>
             </div>
             <div class="agent-card" id="card-researcher">
-                <div class="agent-icon">🤬</div>
+                <div class="agent-icon">🧬</div>
                 <div class="agent-name">Medical Researcher</div>
                 <div class="agent-badge badge-waiting" id="badge-researcher">WAITING</div>
                 <div class="agent-preview" id="preview-researcher"></div>
@@ -324,11 +132,13 @@
         </div>
     </div>
 
+    <!-- Final Answer -->
     <div id="final-answer">
         <div class="answer-label">⚕️ Clinical Assessment</div>
         <div class="answer-text" id="answer-text"></div>
     </div>
 
+    <!-- Reasoning Trace -->
     <div class="trace-section">
         <button class="trace-toggle" id="trace-toggle" onclick="toggleTrace()">
             <span class="trace-arrow" id="trace-arrow">▶</span>
@@ -337,6 +147,7 @@
         <div id="trace-content"></div>
     </div>
 
+    <!-- Cache Stats -->
     <div id="cache-stats">
         <div class="stats-row">
             <div class="stat-item">Cache Hits: <span id="stat-hits">0</span></div>
@@ -346,297 +157,12 @@
             <div class="stat-item">Tokens Saved: <span id="stat-tokens">~0</span></div>
         </div>
     </div>
-
     <div id="latency-tag"></div>
+
 </div>
 
-<script>
-    const API_URL = "http://localhost:8000";
-    const AGENTS = ["planner", "researcher", "critic", "refiner", "solver"];
-
-    var queryInput   = document.getElementById("query-input");
-    var runBtn       = document.getElementById("run-btn");
-    var btnText      = document.getElementById("btn-text");
-    var spinner      = document.getElementById("spinner");
-    var mockToggle   = document.getElementById("mock-toggle");
-    var finalAnswer  = document.getElementById("final-answer");
-    var answerText   = document.getElementById("answer-text");
-    var traceToggle  = document.getElementById("trace-toggle");
-    var traceContent = document.getElementById("trace-content");
-    var cacheStats   = document.getElementById("cache-stats");
-    var errorBanner  = document.getElementById("error-banner");
-    var errorMsg     = document.getElementById("error-msg");
-    var latencyTag   = document.getElementById("latency-tag");
-    var elapsedTimer = document.getElementById("elapsed-timer");
-
-    var timerInterval = null;
-    var startTime = 0;
-
-    /* ── Card state management ─────────────────── */
-    function setCardState(agent, state, preview) {
-        var card  = document.getElementById("card-" + agent);
-        var badge = document.getElementById("badge-" + agent);
-        var prev  = document.getElementById("preview-" + agent);
-
-        card.classList.remove("running", "done");
-        badge.className = "agent-badge";
-
-        switch (state) {
-            case "waiting":
-                badge.classList.add("badge-waiting");
-                badge.textContent = "WAITING";
-                prev.textContent = "";
-                break;
-            case "running":
-                badge.classList.add("badge-running");
-                badge.textContent = "RUNNING";
-                card.classList.add("running");
-                prev.textContent = "";
-                break;
-            case "done":
-                badge.classList.add("badge-done");
-                badge.textContent = "DONE";
-                card.classList.add("done");
-                if (preview) {
-                    prev.textContent = preview.length > 80 ? preview.substring(0, 80) + "…" : preview;
-                }
-                break;
-            case "skipped":
-                badge.classList.add("badge-skipped");
-                badge.textContent = "SKIPPED";
-                prev.textContent = preview || "";
-                break;
-        }
-    }
-
-    function resetAllCards() {
-        AGENTS.forEach(function(a) { setCardState(a, "waiting"); });
-    }
-
-    /* ── Timer ─────────────────────────────────── */
-    function startTimer() {
-        startTime = Date.now();
-        elapsedTimer.classList.add("visible");
-        elapsedTimer.textContent = "⏱ 0.0s";
-        timerInterval = setInterval(function() {
-            var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-            elapsedTimer.textContent = "⏱ " + elapsed + "s";
-        }, 100);
-    }
-
-    function stopTimer() {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-        var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        elapsedTimer.textContent = "⏱ " + elapsed + "s";
-    }
-
-    /* ── Trace ─────────────────────────────────── */
-    function toggleTrace() {
-        var expanded = traceContent.classList.contains("visible");
-        if (expanded) {
-            traceContent.classList.remove("visible");
-            traceToggle.classList.remove("expanded");
-        } else {
-            traceContent.classList.add("visible");
-            traceToggle.classList.add("expanded");
-        }
-    }
-
-    function expandTrace() {
-        traceContent.classList.add("visible");
-        traceToggle.classList.add("expanded");
-    }
-
-    function collapseTrace() {
-        traceContent.classList.remove("visible");
-        traceToggle.classList.remove("expanded");
-    }
-
-    /* ── Error ─────────────────────────────────── */
-    function showError(msg) {
-        errorMsg.textContent = "Error: " + msg + ". Is the API running at localhost:8000?";
-        errorBanner.classList.add("visible");
-    }
-
-    function hideError() { errorBanner.classList.remove("visible"); }
-
-    /* ── Loading state ─────────────────────────── */
-    function setLoading(on) {
-        runBtn.disabled = on;
-        spinner.classList.toggle("visible", on);
-        btnText.textContent = on ? "Running…" : "▶ Run";
-    }
-
-    function hideResults() {
-        finalAnswer.classList.remove("visible");
-        cacheStats.classList.remove("visible");
-        latencyTag.classList.remove("visible");
-        collapseTrace();
-        traceContent.innerHTML = "";
-    }
-
-    /* ── Show final result ─────────────────────── */
-    function showResult(data) {
-        stopTimer();
-
-        // Final answer — extract clean text from JSON if present
-        var answer = data.final_answer || "No answer generated.";
-        try {
-            var parsed = JSON.parse(answer);
-            if (parsed && parsed.answer) answer = parsed.answer;
-        } catch(e) {}
-        // Remove duplicate disclaimers
-        var parts = answer.split(/⚕️\s*Disclaimer:/i);
-        if (parts.length > 2) answer = parts[0] + "⚕️ Disclaimer:" + parts[1];
-        answerText.textContent = answer;
-        finalAnswer.classList.add("visible");
-
-        // Reasoning trace
-        traceContent.innerHTML = "";
-        var trace = data.reasoning_trace || [];
-        trace.forEach(function(entry, i) {
-            var div = document.createElement("div");
-            div.className = "trace-step";
-            div.textContent = (i + 1) + ". " + entry;
-            traceContent.appendChild(div);
-        });
-        expandTrace();
-
-        // Mark any remaining agents as done based on trace
-        mapTraceToAgents(trace);
-
-        // Cache stats
-        var stats = data.token_stats || {};
-        document.getElementById("stat-hits").textContent = stats.cache_hits !== undefined ? stats.cache_hits : "0";
-        document.getElementById("stat-misses").textContent = stats.cache_misses !== undefined ? stats.cache_misses : "0";
-        document.getElementById("stat-tokens").textContent = "~" + (stats.estimated_tokens_saved !== undefined ? stats.estimated_tokens_saved : "0");
-        cacheStats.classList.add("visible");
-
-        // Latency
-        var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        latencyTag.textContent = "⏱ Completed in " + elapsed + "s | Retry count: " + (data.retry_count || 0);
-        latencyTag.classList.add("visible");
-
-        setLoading(false);
-    }
-
-    /* ── Map trace entries to cards ─────────────── */
-    function mapTraceToAgents(trace) {
-        var mapping = {};
-        var refinerUsed = false;
-
-        trace.forEach(function(entry) {
-            var lower = entry.toLowerCase();
-            if (lower.indexOf("[planner]") !== -1 || lower.indexOf("planner") !== -1) mapping.planner = entry;
-            else if (lower.indexOf("[researcher]") !== -1 || lower.indexOf("researcher") !== -1) mapping.researcher = entry;
-            else if (lower.indexOf("[critic]") !== -1 || lower.indexOf("critic") !== -1) mapping.critic = entry;
-            else if (lower.indexOf("[refiner]") !== -1 || lower.indexOf("refiner") !== -1) { mapping.refiner = entry; refinerUsed = true; }
-            else if (lower.indexOf("[solver]") !== -1 || lower.indexOf("solver") !== -1) mapping.solver = entry;
-        });
-
-        AGENTS.forEach(function(agent) {
-            if (mapping[agent]) {
-                setCardState(agent, "done", mapping[agent]);
-            } else if (agent === "refiner" && !refinerUsed) {
-                setCardState(agent, "skipped", "Not needed");
-            } else {
-                setCardState(agent, "done", "Completed");
-            }
-        });
-    }
-
-    /* ── Main run handler (SSE streaming) ──────── */
-    function handleRun() {
-        hideError();
-
-        var query = queryInput.value.trim();
-        if (!query) {
-            queryInput.classList.add("shake");
-            setTimeout(function() { queryInput.classList.remove("shake"); }, 500);
-            return;
-        }
-
-        var useMock = mockToggle.checked;
-
-        // Reset UI
-        setLoading(true);
-        resetAllCards();
-        hideResults();
-        startTimer();
-
-        // Build SSE URL
-        var url = API_URL + "/query/stream?q=" + encodeURIComponent(query) + "&mock=" + useMock;
-
-        // Use EventSource for SSE
-        var evtSource;
-        try {
-            evtSource = new EventSource(url);
-        } catch (err) {
-            // EventSource not supported or URL issue — fallback to fetch
-            fallbackFetch(query, useMock);
-            return;
-        }
-
-        evtSource.onmessage = function(event) {
-            try {
-                var data = JSON.parse(event.data);
-
-                if (data.type === "agent_update") {
-                    setCardState(data.agent, data.status, data.detail || "");
-                } else if (data.type === "result") {
-                    evtSource.close();
-                    showResult(data);
-                } else if (data.type === "error") {
-                    evtSource.close();
-                    stopTimer();
-                    showError(data.message || "Unknown error");
-                    resetAllCards();
-                    setLoading(false);
-                }
-            } catch (e) {
-                // Ignore parse errors on partial data
-            }
-        };
-
-        evtSource.onerror = function() {
-            evtSource.close();
-            stopTimer();
-            showError("Stream connection failed");
-            resetAllCards();
-            setLoading(false);
-        };
-    }
-
-    /* ── Fallback: non-streaming fetch ─────────── */
-    function fallbackFetch(query, useMock) {
-        fetch(API_URL + "/query", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: query, mock: useMock })
-        })
-        .then(function(r) {
-            if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || "HTTP " + r.status); });
-            return r.json();
-        })
-        .then(function(data) { showResult(data); })
-        .catch(function(err) {
-            stopTimer();
-            showError(err.message || "Network error");
-            resetAllCards();
-            setLoading(false);
-        });
-    }
-
-    /* ── Keyboard shortcut ─────────────────────── */
-    queryInput.addEventListener("keydown", function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-            e.preventDefault();
-            handleRun();
-        }
-    });
-</script>
+<!-- GSAP CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
