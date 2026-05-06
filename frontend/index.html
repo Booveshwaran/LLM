@@ -10,12 +10,17 @@
 :root{--bg:#020810;--surface:#0a1628;--primary:#00d4ff;--accent:#00ff9d;--danger:#ff4757;--text:#e8f4f8;--muted:#4a6fa5;--glass:rgba(10,22,40,.55);--glass-border:rgba(0,212,255,.12);--radius:16px;--ease:cubic-bezier(.16,1,.3,1)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--muted) var(--bg)}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:none}
 body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
 
 /* CURSOR */
-#cursor-dot,#cursor-ring{display:none}
+/* CURSOR */
+#cursor-dot{position:fixed;width:12px;height:12px;background:var(--primary);border-radius:50%;pointer-events:none;z-index:100000;transform:translate(-50%,-50%);box-shadow:0 0 20px rgba(0,212,255,.8),0 0 40px rgba(0,212,255,.3);transition:width .2s var(--ease),height .2s var(--ease),background .2s}
+#cursor-ring{position:fixed;width:44px;height:44px;border:2px solid rgba(0,212,255,.5);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:width .3s var(--ease),height .3s var(--ease),border-color .3s,background .3s}
+#cursor-ring.hover{width:70px;height:70px;border-color:var(--primary);background:rgba(0,212,255,.06)}
+#cursor-dot.click{width:6px;height:6px}
+@media(hover:none),(pointer:coarse){#cursor-dot,#cursor-ring{display:none}body{cursor:auto}}
 
 /* 3D CANVAS */
 #webgl-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%}
@@ -33,7 +38,7 @@ section{position:relative;z-index:1}
 .hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hero-sub{font:300 clamp(.95rem,1.5vw,1.15rem)/1.7 'Inter',sans-serif;color:var(--muted);max-width:520px;margin:0 auto 40px;opacity:0}
 .hero-btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;opacity:0}
-.btn{font:600 .95rem 'DM Mono',monospace;letter-spacing:.06em;padding:14px 32px;border-radius:100px;border:none;cursor:pointer;transition:all .25s var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn{font:600 .95rem 'DM Mono',monospace;letter-spacing:.06em;padding:14px 32px;border-radius:100px;border:none;cursor:none;transition:all .25s var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
 .btn-primary{background:var(--primary);color:var(--bg);box-shadow:0 0 30px rgba(0,212,255,.3)}
 .btn-primary:hover{box-shadow:0 0 50px rgba(0,212,255,.5);transform:translateY(-2px)}
 .btn-ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.15)}

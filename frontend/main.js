@@ -58,12 +58,36 @@ let timerInt=null,t0=0,sparkData=[];
 (function initCursor(){
   if(!matchMedia('(hover:hover)').matches)return;
   const dot=$('cursor-dot'),ring=$('cursor-ring');
-  let mx=0,my=0,rx=0,ry=0;
-  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});
-  (function lp(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(lp);})();
-  document.querySelectorAll('a,button,.agent-card,.spec-tile,.toggle,.stats-refresh').forEach(el=>{
+  if(!dot||!ring)return;
+  let mx=-100,my=-100,rx=-100,ry=-100;
+  // Move dot instantly, ring follows with lerp
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX;my=e.clientY;
+    dot.style.left=mx+'px';dot.style.top=my+'px';
+  });
+  // Smooth ring follow
+  (function lp(){
+    rx+=(mx-rx)*.12;ry+=(my-ry)*.12;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(lp);
+  })();
+  // Click animation — dot shrinks then springs back
+  document.addEventListener('mousedown',()=>dot.classList.add('click'));
+  document.addEventListener('mouseup',()=>dot.classList.remove('click'));
+  // Hover expansion on interactive elements
+  document.querySelectorAll('a,button,.agent-card,.spec-tile,.toggle,.stats-refresh,.toggle-wrap').forEach(el=>{
     el.addEventListener('mouseenter',()=>ring.classList.add('hover'));
     el.addEventListener('mouseleave',()=>ring.classList.remove('hover'));
+  });
+  // Magnetic pull on buttons
+  document.querySelectorAll('#analyze-btn,.btn-primary,.btn-ghost,.stats-refresh').forEach(btn=>{
+    btn.addEventListener('mousemove',e=>{
+      const r=btn.getBoundingClientRect();
+      const dx=(e.clientX-r.left-r.width/2)*.15;
+      const dy=(e.clientY-r.top-r.height/2)*.15;
+      btn.style.transform=`translate(${dx}px,${dy}px)`;
+    });
+    btn.addEventListener('mouseleave',()=>{btn.style.transform='';});
   });
 })();
 
