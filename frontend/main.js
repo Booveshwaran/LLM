@@ -182,6 +182,8 @@ function showAnswer(data){
     else setAgent(a,'done','Completed');
   });
   setLoading(false);
+  // Refresh CAG stats after every query
+  setTimeout(fetchStats, 500);
 }
 
 /* ── Loading ───────────────────────────────────────── */
@@ -225,14 +227,29 @@ function showErr(m){$('error-msg').textContent=m;$('error-bar').classList.add('o
 /* ── CAG Stats ─────────────────────────────────────── */
 function fetchStats(){
   fetch(API+'/cag-stats').then(r=>r.json()).then(d=>{
-    const hr=d.hit_rate!==undefined?(d.hit_rate*100).toFixed(1)+'%':'0%';
-    $('sv-hitrate').textContent=hr;
-    $('sv-entries').textContent=d.cache_size||d.total_cached||'0';
-    $('sv-similarity').textContent=d.avg_similarity!==undefined?(d.avg_similarity*100).toFixed(1)+'%':'—';
+    // API returns cag_-prefixed keys: cag_hit_rate, cag_cache_size, cag_hits, etc.
+    const hitRate = d.cag_hit_rate !== undefined ? d.cag_hit_rate : (d.hit_rate || 0);
+    const hr = (hitRate * 100).toFixed(1) + '%';
+    $('sv-hitrate').textContent = hr;
+    $('sv-entries').textContent = d.cag_cache_size || d.cache_size || '0';
+    // Show threshold as similarity reference
+    const sim = d.similarity_threshold || d.avg_similarity;
+    $('sv-similarity').textContent = sim !== undefined ? (sim * 100).toFixed(0) + '%' : '—';
     // Sparkline
-    sparkData.push(parseFloat(hr));if(sparkData.length>5)sparkData.shift();
+    sparkData.push(parseFloat(hr)); if(sparkData.length > 8) sparkData.shift();
     drawSparkline();
-  }).catch(()=>{});
+  }).catch(()=>{
+    // Fallback: try /cache-stats (KV-Cache) if /cag-stats fails
+    fetch(API+'/cache-stats').then(r=>r.json()).then(d=>{
+      const total = (d.cache_hits||0) + (d.cache_misses||0);
+      const hr = total > 0 ? ((d.cache_hits/total)*100).toFixed(1)+'%' : '0%';
+      $('sv-hitrate').textContent = hr;
+      $('sv-entries').textContent = d.cache_size || '0';
+      $('sv-similarity').textContent = '—';
+      sparkData.push(parseFloat(hr)); if(sparkData.length > 8) sparkData.shift();
+      drawSparkline();
+    }).catch(()=>{});
+  });
 }
 function drawSparkline(){
   const svg=$('sparkline');svg.innerHTML='';
