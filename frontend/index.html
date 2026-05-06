@@ -36,7 +36,7 @@ section{position:relative;z-index:1}
 .hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hero-sub{font:300 clamp(.95rem,1.5vw,1.15rem)/1.7 'Inter',sans-serif;color:var(--muted);max-width:520px;margin:0 auto 40px;opacity:0}
 .hero-btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;opacity:0}
-.btn{font:600 .82rem 'DM Mono',monospace;letter-spacing:.06em;padding:14px 32px;border-radius:100px;border:none;cursor:none;transition:all .25s var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn{font:600 .95rem 'DM Mono',monospace;letter-spacing:.06em;padding:14px 32px;border-radius:100px;border:none;cursor:none;transition:all .25s var(--ease);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
 .btn-primary{background:var(--primary);color:var(--bg);box-shadow:0 0 30px rgba(0,212,255,.3)}
 .btn-primary:hover{box-shadow:0 0 50px rgba(0,212,255,.5);transform:translateY(-2px)}
 .btn-ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.15)}
@@ -52,13 +52,13 @@ section{position:relative;z-index:1}
 /* QUERY SECTION */
 .query-section{padding:80px 0}
 .query-card{max-width:720px;margin:0 auto;padding:32px;opacity:0;transform:translateY(40px)}
-.section-tag{font:500 .6rem 'DM Mono',monospace;color:var(--primary);letter-spacing:.3em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-tag{font:500 .85rem 'DM Mono',monospace;color:var(--primary);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
 .section-tag::before{content:'';width:24px;height:1px;background:var(--primary)}
-#query-input{width:100%;min-height:100px;resize:vertical;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:12px;color:var(--text);font:.9rem/1.7 'Inter',sans-serif;padding:16px;outline:none;transition:border-color .3s;caret-color:var(--primary)}
+#query-input{width:100%;min-height:100px;resize:vertical;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:12px;color:var(--text);font:1.05rem/1.7 'Inter',sans-serif;padding:16px;outline:none;transition:border-color .3s;caret-color:var(--primary)}
 #query-input:focus{border-color:rgba(0,212,255,.3)}
 #query-input::placeholder{color:var(--muted)}
 .query-controls{display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap}
-.toggle-wrap{display:flex;align-items:center;gap:8px;font:.7rem 'DM Mono',monospace;color:var(--muted)}
+.toggle-wrap{display:flex;align-items:center;gap:8px;font:.85rem 'DM Mono',monospace;color:var(--muted)}
 .toggle{position:relative;width:40px;height:22px;cursor:pointer}
 .toggle input{opacity:0;width:0;height:0}
 .toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.08);border-radius:22px;transition:background .3s}
@@ -70,21 +70,21 @@ section{position:relative;z-index:1}
 #analyze-btn.loading{background:rgba(0,212,255,.15);color:var(--primary);border:1px solid var(--primary)}
 #analyze-btn.loading .spinner{display:inline-block;border-color:rgba(0,212,255,.2);border-top-color:var(--primary)}
 @keyframes spin{to{transform:rotate(360deg)}}
-.timer{margin-left:auto;font:.75rem 'DM Mono',monospace;color:var(--primary);display:none}
+.timer{margin-left:auto;font:.9rem 'DM Mono',monospace;color:var(--primary);display:none}
 .timer.on{display:block}
 
 /* AGENT PIPELINE */
 .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:28px}
 .agent-card{padding:16px 12px;min-height:140px;display:flex;flex-direction:column;transition:all .4s var(--ease);opacity:0;transform:translateY(20px)}
-.agent-card .icon{font-size:1.3rem;margin-bottom:6px}
-.agent-card .name{font:600 .68rem 'DM Mono',monospace;color:var(--text);margin-bottom:6px;letter-spacing:.04em}
-.agent-card .badge{font:700 .55rem 'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:4px;width:fit-content;margin-bottom:6px}
+.agent-card .icon{font-size:1.6rem;margin-bottom:8px}
+.agent-card .name{font:600 .85rem 'DM Mono',monospace;color:var(--text);margin-bottom:8px;letter-spacing:.04em}
+.agent-card .badge{font:700 .72rem 'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:4px;width:fit-content;margin-bottom:8px}
 .badge-pending{background:rgba(255,255,255,.04);color:var(--muted)}
 .badge-thinking{background:rgba(0,212,255,.12);color:var(--primary);animation:pulse 1.2s infinite}
 .badge-done{background:rgba(0,255,157,.12);color:var(--accent)}
 .badge-rejected{background:rgba(255,71,87,.12);color:var(--danger)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.agent-card .meta{font:.6rem 'DM Mono',monospace;color:var(--muted);margin-top:auto;line-height:1.5}
+.agent-card .meta{font:.78rem 'DM Mono',monospace;color:var(--muted);margin-top:auto;line-height:1.5}
 .agent-card.active{border-color:rgba(0,212,255,.25);box-shadow:0 0 20px rgba(0,212,255,.06)}
 .agent-card.done{border-color:rgba(0,255,157,.15)}
 
@@ -94,22 +94,22 @@ section{position:relative;z-index:1}
 #answer-card.visible{display:block}
 @keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 .answer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.answer-label{font:700 .6rem 'DM Mono',monospace;color:var(--primary);letter-spacing:.2em;text-transform:uppercase}
-.cag-badge{font:.6rem 'DM Mono',monospace;background:rgba(0,255,157,.1);color:var(--accent);padding:4px 12px;border-radius:100px;border:1px solid rgba(0,255,157,.2);display:none}
+.answer-label{font:700 .85rem 'DM Mono',monospace;color:var(--primary);letter-spacing:.15em;text-transform:uppercase}
+.cag-badge{font:.8rem 'DM Mono',monospace;background:rgba(0,255,157,.1);color:var(--accent);padding:5px 14px;border-radius:100px;border:1px solid rgba(0,255,157,.2);display:none}
 .cag-badge.on{display:inline-flex;align-items:center;gap:6px}
-#answer-text{font:.92rem/1.85 'Inter',sans-serif;color:rgba(232,244,248,.9);white-space:pre-wrap}
-.disclaimer{display:block;margin-top:20px;padding:12px 16px;background:rgba(74,111,165,.06);border-left:2px solid var(--muted);color:var(--muted);font:.82rem/1.6 'Inter',sans-serif;font-style:italic;border-radius:0 8px 8px 0}
+#answer-text{font:1.05rem/1.85 'Inter',sans-serif;color:rgba(232,244,248,.9);white-space:pre-wrap}
+.disclaimer{display:block;margin-top:20px;padding:12px 16px;background:rgba(74,111,165,.06);border-left:2px solid var(--muted);color:var(--muted);font:.95rem/1.6 'Inter',sans-serif;font-style:italic;border-radius:0 8px 8px 0}
 
 /* CAG STATS */
 .stats-section{padding:0 0 100px}
 .stats-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.stats-header h2{font:700 1.4rem 'Playfair Display',serif}
-.stats-refresh{font:.65rem 'DM Mono',monospace;color:var(--primary);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:6px 14px;border-radius:100px;cursor:pointer;transition:background .2s}
+.stats-header h2{font:700 1.8rem 'Playfair Display',serif}
+.stats-refresh{font:.85rem 'DM Mono',monospace;color:var(--primary);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:8px 18px;border-radius:100px;cursor:pointer;transition:background .2s}
 .stats-refresh:hover{background:rgba(0,212,255,.15)}
 .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.stat-card{padding:24px 20px;text-align:center;opacity:0;transform:translateY(20px)}
-.stat-card .stat-label{font:.55rem 'DM Mono',monospace;color:var(--muted);letter-spacing:.25em;text-transform:uppercase;margin-bottom:10px}
-.stat-card .stat-value{font:800 2rem 'Playfair Display',serif;margin-bottom:4px}
+.stat-card{padding:28px 24px;text-align:center;opacity:0;transform:translateY(20px)}
+.stat-card .stat-label{font:.8rem 'DM Mono',monospace;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px}
+.stat-card .stat-value{font:800 2.4rem 'Playfair Display',serif;margin-bottom:4px}
 .stat-card .stat-value.cyan{color:var(--primary)}
 .stat-card .stat-value.green{color:var(--accent)}
 .stat-card .stat-value.gold{color:#ffd700}
@@ -117,21 +117,21 @@ section{position:relative;z-index:1}
 
 /* SPECIALTIES */
 .specialties-section{padding:0 0 100px}
-.specialties-section h2{font:700 1.4rem 'Playfair Display',serif;margin-bottom:24px;text-align:center;opacity:0}
-.spec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
-.spec-tile{padding:16px 12px;text-align:center;transition:all .3s var(--ease);cursor:default;opacity:0;transform:translateY(16px)}
+.specialties-section h2{font:700 1.8rem 'Playfair Display',serif;margin-bottom:28px;text-align:center;opacity:0}
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.spec-tile{padding:18px 14px;text-align:center;transition:all .3s var(--ease);cursor:default;opacity:0;transform:translateY(16px)}
 .spec-tile:hover{border-color:rgba(0,212,255,.3);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,212,255,.08)}
-.spec-tile .spec-icon{font-size:1.4rem;margin-bottom:6px}
-.spec-tile .spec-name{font:600 .65rem 'DM Mono',monospace;color:var(--text);margin-bottom:4px}
-.spec-tile .spec-count{font:.55rem 'DM Mono',monospace;color:var(--muted)}
+.spec-tile .spec-icon{font-size:1.6rem;margin-bottom:8px}
+.spec-tile .spec-name{font:600 .82rem 'DM Mono',monospace;color:var(--text);margin-bottom:4px}
+.spec-tile .spec-count{font:.72rem 'DM Mono',monospace;color:var(--muted)}
 
 /* ARCHITECTURE */
 .arch-section{padding:0 0 100px;text-align:center}
-.arch-section h2{font:700 1.4rem 'Playfair Display',serif;margin-bottom:32px;opacity:0}
+.arch-section h2{font:700 1.8rem 'Playfair Display',serif;margin-bottom:32px;opacity:0}
 #arch-svg{max-width:800px;width:100%;height:auto;opacity:0;transform:translateY(20px)}
 
 /* FOOTER */
-footer{text-align:center;padding:40px 24px;border-top:1px solid rgba(255,255,255,.04);font:.65rem 'DM Mono',monospace;color:var(--muted);letter-spacing:.08em}
+footer{text-align:center;padding:40px 24px;border-top:1px solid rgba(255,255,255,.04);font:.82rem 'DM Mono',monospace;color:var(--muted);letter-spacing:.06em}
 
 /* ERROR */
 #error-bar{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:200;background:rgba(255,71,87,.1);backdrop-filter:blur(16px);border:1px solid rgba(255,71,87,.2);border-radius:12px;padding:10px 20px;color:var(--danger);font:.78rem 'Inter',sans-serif;display:none;align-items:center;gap:12px}
@@ -223,36 +223,36 @@ footer{text-align:center;padding:40px 24px;border-top:1px solid rgba(255,255,255
 <section class="arch-section" id="arch">
   <div class="container">
     <h2>Pipeline Architecture</h2>
-    <svg id="arch-svg" viewBox="0 0 800 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg id="arch-svg" viewBox="0 0 860 240" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
       <g filter="url(#glow)">
-        <rect x="10" y="85" width="90" height="40" rx="8" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
-        <text x="55" y="110" text-anchor="middle" fill="var(--primary)" font-size="9" font-family="DM Mono">Query</text>
-        <path d="M100 105 L140 105" stroke="var(--primary)" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="140" y="85" width="80" height="40" rx="8" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
-        <text x="180" y="110" text-anchor="middle" fill="var(--primary)" font-size="8" font-family="DM Mono">CAG Lookup</text>
-        <path d="M220 95 L220 50 L310 50" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="310" y="30" width="100" height="40" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
-        <text x="360" y="48" text-anchor="middle" fill="var(--accent)" font-size="8" font-family="DM Mono">⚡ Instant</text>
-        <text x="360" y="60" text-anchor="middle" fill="var(--accent)" font-size="7" font-family="DM Mono">Answer (0ms)</text>
-        <path d="M220 105 L270 105" stroke="var(--primary)" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="270" y="85" width="80" height="40" rx="8" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
-        <text x="310" y="110" text-anchor="middle" fill="var(--text)" font-size="8" font-family="DM Mono">🩺 Planner</text>
-        <path d="M350 105 L380 105" stroke="var(--primary)" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="380" y="85" width="80" height="40" rx="8" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
-        <text x="420" y="110" text-anchor="middle" fill="var(--text)" font-size="7" font-family="DM Mono">🔬 Researcher</text>
-        <path d="M460 105 L490 105" stroke="var(--primary)" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="490" y="85" width="80" height="40" rx="8" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
-        <text x="530" y="110" text-anchor="middle" fill="var(--text)" font-size="8" font-family="DM Mono">⚖️ Reviewer</text>
-        <path d="M530 125 L530 170 L470 170 L470 155" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="430" y="155" width="80" height="35" rx="8" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
-        <text x="470" y="177" text-anchor="middle" fill="#F59E0B" font-size="7" font-family="DM Mono">💉 Refiner ↺</text>
-        <path d="M570 105 L610 105" stroke="var(--primary)" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="610" y="85" width="80" height="40" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
-        <text x="650" y="110" text-anchor="middle" fill="var(--text)" font-size="8" font-family="DM Mono">⚕️ Advisor</text>
-        <path d="M690 105 L720 105" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 3" class="arch-path"/>
-        <rect x="720" y="85" width="70" height="40" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
-        <text x="755" y="110" text-anchor="middle" fill="var(--accent)" font-size="8" font-family="DM Mono">Answer</text>
+        <rect x="10" y="90" width="95" height="46" rx="10" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
+        <text x="57" y="118" text-anchor="middle" fill="var(--primary)" font-size="14" font-family="DM Mono" font-weight="600">Query</text>
+        <path d="M105 113 L145 113" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="145" y="90" width="95" height="46" rx="10" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
+        <text x="192" y="118" text-anchor="middle" fill="var(--primary)" font-size="12" font-family="DM Mono" font-weight="500">CAG Lookup</text>
+        <path d="M240 100 L240 52 L320 52" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="320" y="28" width="110" height="48" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="375" y="50" text-anchor="middle" fill="var(--accent)" font-size="12" font-family="DM Mono" font-weight="600">⚡ Instant</text>
+        <text x="375" y="66" text-anchor="middle" fill="var(--accent)" font-size="11" font-family="DM Mono">Answer (0ms)</text>
+        <path d="M240 113 L280 113" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="280" y="90" width="90" height="46" rx="10" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
+        <text x="325" y="118" text-anchor="middle" fill="var(--text)" font-size="12" font-family="DM Mono" font-weight="500">🩺 Planner</text>
+        <path d="M370 113 L400 113" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="400" y="90" width="100" height="46" rx="10" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
+        <text x="450" y="118" text-anchor="middle" fill="var(--text)" font-size="11" font-family="DM Mono" font-weight="500">🔬 Researcher</text>
+        <path d="M500 113 L530 113" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="530" y="90" width="90" height="46" rx="10" fill="none" stroke="var(--primary)" stroke-width="1.5"/>
+        <text x="575" y="118" text-anchor="middle" fill="var(--text)" font-size="12" font-family="DM Mono" font-weight="500">⚖️ Reviewer</text>
+        <path d="M575 136 L575 185 L510 185 L510 170" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="465" y="165" width="90" height="42" rx="10" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+        <text x="510" y="191" text-anchor="middle" fill="#F59E0B" font-size="11" font-family="DM Mono" font-weight="500">💉 Refiner ↺</text>
+        <path d="M620 113 L655 113" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="655" y="90" width="90" height="46" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="700" y="118" text-anchor="middle" fill="var(--text)" font-size="12" font-family="DM Mono" font-weight="500">⚕️ Advisor</text>
+        <path d="M745 113 L775 113" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3" class="arch-path"/>
+        <rect x="775" y="90" width="75" height="46" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="812" y="118" text-anchor="middle" fill="var(--accent)" font-size="13" font-family="DM Mono" font-weight="600">Answer</text>
       </g>
     </svg>
   </div>
