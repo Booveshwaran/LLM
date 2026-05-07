@@ -171,12 +171,90 @@ class _MockChatModel:
         ),
     }
 
+    # Query-aware solver responses keyed by clinical trigger words
+    _SOLVER_OVERRIDES: dict[str, str] = {
+        "chest pain": (
+            '{"answer": "The presentation is consistent with acute myocardial infarction (STEMI). '
+            'Immediate management: 1) Administer aspirin 325mg chewed, 2) Sublingual nitroglycerin, '
+            '3) Morphine for pain, 4) Obtain 12-lead ECG, 5) Activate cath lab for PCI within 90 min. '
+            'Check troponin levels. Administer heparin and dual antiplatelet therapy.\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "Acute coronary syndrome workup with guideline-directed STEMI management."}'
+        ),
+        "ketoacidosis": (
+            '{"answer": "Diagnosis: Diabetic ketoacidosis (DKA). Blood glucose >250, pH <7.3, positive ketones '
+            'confirm DKA. Treatment: 1) IV normal saline bolus (1-1.5L/hr), 2) Insulin drip at 0.1 units/kg/hr, '
+            '3) Potassium replacement when K<5.3, 4) Monitor glucose hourly and electrolytes every 2-4 hours. '
+            'Bicarbonate only if pH <6.9.\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "DKA management per ADA guidelines with insulin and fluid resuscitation."}'
+        ),
+        "ketone": (
+            '{"answer": "Diagnosis: Diabetic ketoacidosis (DKA). Treatment: IV fluids, insulin drip, '
+            'potassium replacement. Monitor glucose hourly.\\n\\n'
+            'Disclaimer: For educational purposes only. Consult a healthcare professional.", '
+            '"reasoning_trace": "DKA protocol."}'
+        ),
+        "type 2 diabetes": (
+            '{"answer": "First-line treatment for newly diagnosed Type 2 diabetes is metformin (500mg BID, '
+            'titrated to 1000mg BID). Target HbA1c <7%. If metformin alone insufficient, add SGLT2 inhibitor '
+            '(empagliflozin) or GLP-1 agonist (semaglutide) — both have cardiovascular and renal benefits. '
+            'Lifestyle modifications: diet, exercise, weight management.\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "ADA Standards of Care 2024 — stepwise glucose-lowering therapy."}'
+        ),
+        "urinary tract infection": (
+            '{"answer": "For uncomplicated UTI in women: First-line is nitrofurantoin 100mg BID for 5 days. '
+            'Alternative: TMP-SMX 160/800mg BID for 3 days (if local resistance <20%). '
+            'Avoid fluoroquinolones for uncomplicated cystitis. Send urine culture if recurrent.\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "IDSA guidelines for uncomplicated cystitis management."}'
+        ),
+        "warfarin": (
+            '{"answer": "Major concern: Increased bleeding risk. Ibuprofen (NSAID) inhibits platelet aggregation '
+            'and can cause GI mucosal damage. Combined with warfarin anticoagulation, this significantly increases '
+            'risk of GI bleeding and hemorrhage. Recommendation: Use acetaminophen instead. '
+            'If NSAID required, add PPI (omeprazole) and monitor INR closely.\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "Drug interaction: warfarin + NSAID = additive bleeding risk."}'
+        ),
+        "tsh": (
+            '{"answer": "Diagnosis: Primary hypothyroidism. TSH 12 mIU/L (elevated, normal 0.4-4.0) with '
+            'free T4 0.4 ng/dL (low, normal 0.8-1.8) confirms hypothyroidism. Treatment: Levothyroxine '
+            '1.6 mcg/kg/day. Recheck TSH in 6-8 weeks and titrate dose. Monitor for symptoms: fatigue, '
+            'weight gain, cold intolerance, constipation.\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "Thyroid function interpretation per ATA guidelines."}'
+        ),
+        "anaphylaxis": (
+            '{"answer": "First-line treatment: Epinephrine 0.3-0.5mg IM in the anterolateral thigh (EpiPen). '
+            'Repeat every 5-15 minutes if needed. Adjunct therapy: IV fluids for hypotension, '
+            'diphenhydramine 50mg IV, methylprednisolone 125mg IV, albuterol nebulizer for bronchospasm. '
+            'Observe for biphasic reaction (4-6 hours minimum).\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "Anaphylaxis management per WAO/EAACI guidelines."}'
+        ),
+        "cancer screening": (
+            '{"answer": "Cancer screening recommended starting at age 45: Colorectal cancer screening with '
+            'colonoscopy every 10 years, or annual FIT/FOBT, or CT colonography every 5 years. '
+            'The ACS updated guidelines in 2018 to recommend colon cancer screening beginning at age 45 '
+            'for average-risk adults. Additional screenings by age: mammography, lung CT for smokers.\\n\\n'
+            'Disclaimer: This is for educational purposes only. Always consult a qualified healthcare professional.", '
+            '"reasoning_trace": "ACS/USPSTF colorectal cancer screening guidelines."}'
+        ),
+        "colonoscopy": (
+            '{"answer": "Colon cancer screening: colonoscopy every 10 years starting at age 45.\\n\\n'
+            'Disclaimer: For educational purposes only. Consult a healthcare professional.", '
+            '"reasoning_trace": "CRC screening."}'
+        ),
+    }
+
     def __init__(self, agent_name: str) -> None:
         self.agent_name = agent_name
         self._call_count = 0
 
     def invoke(self, messages: Any, **kwargs: Any) -> Any:
-        """Return a mock AIMessage."""
+        """Return a mock AIMessage — query-aware for the solver agent."""
         from langchain_core.messages import AIMessage
 
         self._call_count += 1
@@ -184,10 +262,23 @@ class _MockChatModel:
         # Critic alternates: first call rejects, second approves
         if self.agent_name == "critic":
             key = "critic_reject" if self._call_count == 1 else "critic"
-        else:
-            key = self.agent_name
+            return AIMessage(content=self._RESPONSES.get(key, '{"result": "mock response"}'))
 
-        return AIMessage(content=self._RESPONSES.get(key, '{"result": "mock response"}'))
+        # Solver: scan the user message for clinical keywords to pick the right mock answer
+        if self.agent_name == "solver":
+            user_text = ""
+            if isinstance(messages, list):
+                for m in messages:
+                    content = m.content if hasattr(m, "content") else str(m)
+                    user_text += content.lower() + " "
+            else:
+                user_text = str(messages).lower()
+
+            for trigger, response in self._SOLVER_OVERRIDES.items():
+                if trigger in user_text:
+                    return AIMessage(content=response)
+
+        return AIMessage(content=self._RESPONSES.get(self.agent_name, '{"result": "mock response"}'))
 
     async def ainvoke(self, messages: Any, **kwargs: Any) -> Any:
         """Async variant — just delegates to sync for mocking."""

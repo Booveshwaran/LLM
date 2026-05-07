@@ -63,7 +63,8 @@ class ResearcherAgent:
         try:
             data = json.loads(cleaned)
             if isinstance(data, dict) and "summary" in data:
-                return {"retrieved_docs": data.get("retrieved_docs", rag_docs[:5]), "summary": data["summary"]}
+                # Always use actual FAISS-retrieved docs, not LLM-generated ones
+                return {"retrieved_docs": rag_docs[:5], "summary": data["summary"]}
         except (json.JSONDecodeError, KeyError):
             pass
         return {"retrieved_docs": rag_docs[:5], "summary": content[:500]}
