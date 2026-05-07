@@ -173,6 +173,75 @@ async def cag_stats():
     return get_global_cag().stats()
 
 
+@app.post("/evaluate")
+async def evaluate_query(request: QueryRequest):
+    """
+    Run a query through the pipeline AND return evaluation metrics.
+
+    Returns: answer + answer_eval (correctness) + rag_eval (retrieval quality).
+    Requires 'expected_keywords' in the request body for meaningful scoring.
+    """
+    from eval.metrics import evaluate_answer, evaluate_retrieval
+
+    t0 = time.time()
+    result = run_workflow(query=request.query, mock=request.mock)
+    elapsed = round(time.time() - t0, 2)
+
+    answer = result.get("final_answer", "")
+    research = result.get("research", {})
+    retrieved_docs = research.get("retrieved_docs", [])
+
+    # Extract keywords from the query for auto-evaluation
+    import re
+    query_words = re.findall(r"\b[a-z]{4,}\b", request.query.lower())
+    stopwords = {"what", "which", "when", "where", "that", "this", "with", "from",
+                 "have", "does", "most", "been", "first", "line", "treatment"}
+    auto_keywords = [w for w in query_words if w not in stopwords][:5]
+
+    answer_eval = evaluate_answer(answer, request.query, auto_keywords)
+    rag_eval = evaluate_retrieval(retrieved_docs, auto_keywords, k=5)
+
+    return {
+        "final_answer": answer,
+        "latency_seconds": elapsed,
+        "answer_eval": answer_eval,
+        "rag_eval": rag_eval,
+        "retrieved_docs_count": len(retrieved_docs),
+    }
+
+
+@app.get("/evaluate/rag")
+async def evaluate_rag_retrieval(
+    q: str = Query(..., min_length=1, description="Query to evaluate RAG retrieval for."),
+    k: int = Query(default=5, description="Number of documents to retrieve."),
+):
+    """
+    Standalone RAG retrieval evaluation — no LLM, just FAISS search + metrics.
+
+    Returns: retrieved chunks with per-chunk relevance scores.
+    """
+    from eval.metrics import evaluate_retrieval
+    from memory.vector_store import get_global_store
+
+    vs = get_global_store()
+    docs = vs.similarity_search(q, k=k)
+
+    import re
+    query_words = re.findall(r"\b[a-z]{4,}\b", q.lower())
+    stopwords = {"what", "which", "when", "where", "that", "this", "with", "from",
+                 "have", "does", "most", "been", "first", "line", "treatment"}
+    keywords = [w for w in query_words if w not in stopwords][:8]
+
+    rag_eval = evaluate_retrieval(docs, keywords, k=k)
+
+    return {
+        "query": q,
+        "k": k,
+        "keywords_used": keywords,
+        **rag_eval,
+    }
+
+
 # ── Run directly ────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

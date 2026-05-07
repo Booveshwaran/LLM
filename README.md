@@ -119,7 +119,8 @@ Then open `frontend/index.html` in your browser.
 
 ### 6. Run healthcare benchmarks
 ```bash
-python eval/benchmark.py --mock
+python eval/benchmark.py --mock           # basic run
+python eval/benchmark.py --mock --verbose  # show per-chunk RAG analysis
 ```
 
 ## API Endpoints
@@ -128,10 +129,25 @@ python eval/benchmark.py --mock
 |----------|--------|-------------|
 | `/query` | POST | Run a clinical query (body: `{"query": "...", "mock": false}`) |
 | `/query/stream` | GET | SSE streaming with real-time agent progress |
+| `/evaluate` | POST | Run query + return evaluation metrics (answer + RAG) |
+| `/evaluate/rag` | GET | Standalone RAG retrieval evaluation (no LLM) |
 | `/cache-stats` | GET | KV-Cache hit/miss/tokens-saved statistics |
 | `/cag-stats` | GET | Cache-Augmented Generation statistics |
 | `/health` | GET | Health check with model routing info |
 | `/docs` | GET | Interactive Swagger UI |
+
+### Evaluation Metrics
+
+**Answer Correctness:**
+- **Keyword F1** — precision/recall against expected medical keywords
+- **Medical Safety** — disclaimer check, dangerous claim detection, evidence language
+- **Composite Score** — weighted combination (0.0 - 1.0) of keyword F1, relevance, safety
+
+**RAG Retrieval Quality:**
+- **Precision@k** — fraction of top-k docs that are relevant
+- **Recall@k** — fraction of expected keywords covered by retrieved docs
+- **MRR** — Mean Reciprocal Rank of first relevant document
+- **NDCG@k** — Normalised Discounted Cumulative Gain (ranking quality)
 
 ## Project Structure
 
