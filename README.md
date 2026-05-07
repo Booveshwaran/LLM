@@ -6,6 +6,11 @@ Features **Cache-Augmented Generation (CAG)**, **RAG with 100+ medical documents
 
 ## Architecture
 
+![Multi-Agent Clinical Reasoning Pipeline](docs/workflow_architecture.png)
+
+<details>
+<summary>Text version</summary>
+
 ```
 User Query
     │
@@ -30,6 +35,7 @@ User Query
 │                                                   ▼
 └──────────────────────────────────────────→ Final Answer + Disclaimer
 ```
+</details>
 
 ## Key Features
 
