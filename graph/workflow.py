@@ -170,6 +170,10 @@ def _solver_node(state: AgentState, agent: SolverAgent) -> dict[str, Any]:
     elapsed = round(time.time() - t0, 2)
 
     cache_stats = get_global_cache().stats()
+    cag_stats = get_global_cag().stats()
+
+    # Merge both KV-cache and CAG stats for frontend
+    combined_stats = {**cache_stats, **cag_stats}
 
     trace = list(state.get("reasoning_trace") or [])
     trace_msg = f"[Solver] Generated final answer in {elapsed}s"
@@ -179,7 +183,7 @@ def _solver_node(state: AgentState, agent: SolverAgent) -> dict[str, Any]:
     return {
         "final_answer": result.get("answer", ""),
         "reasoning_trace": trace,
-        "token_stats": cache_stats,
+        "token_stats": combined_stats,
     }
 
 
@@ -260,11 +264,10 @@ def run_workflow(query: str, mock: bool = False) -> AgentState:
     """
     # CAG lookup — instant answer if similar query was cached
     cag = get_global_cag()
-    if not mock:
-        cached_response = cag.lookup(query)
-        if cached_response is not None:
-            _emit_event("solver", "done", "Instant answer from CAG cache")
-            return cached_response
+    cached_response = cag.lookup(query)
+    if cached_response is not None:
+        _emit_event("solver", "done", "Instant answer from CAG cache")
+        return cached_response
 
     cache = get_global_cache()
     workflow = build_workflow(mock=mock)
@@ -285,7 +288,7 @@ def run_workflow(query: str, mock: bool = False) -> AgentState:
     result = workflow.invoke(initial_state)
 
     # Store in CAG cache for future queries
-    if not mock and result.get("final_answer"):
+    if result.get("final_answer"):
         cag.store(query, dict(result))
 
     return result

@@ -206,8 +206,21 @@ function showAnswer(data){
     else setAgent(a,'done','Completed');
   });
   setLoading(false);
-  // Refresh CAG stats after every query
-  setTimeout(fetchStats, 500);
+
+  // Immediately update Cache Intelligence from response token_stats
+  const ts = data.token_stats || {};
+  if (ts.cag_hit_rate !== undefined || ts.cag_hits !== undefined) {
+    const hitRate = ts.cag_hit_rate !== undefined ? ts.cag_hit_rate : 0;
+    const hr = (hitRate * 100).toFixed(1) + '%';
+    $('sv-hitrate').textContent = hr;
+    $('sv-entries').textContent = ts.cag_cache_size || '0';
+    const sim = ts.similarity_threshold;
+    $('sv-similarity').textContent = sim !== undefined ? (sim * 100).toFixed(0) + '%' : '—';
+    sparkData.push(parseFloat(hr)); if(sparkData.length > 8) sparkData.shift();
+    drawSparkline();
+  }
+  // Also refresh from server for most up-to-date data
+  setTimeout(fetchStats, 800);
 }
 
 /* ── Loading ───────────────────────────────────────── */
