@@ -100,34 +100,9 @@ class HealthResponse(BaseModel):
 @app.post("/query", response_model=QueryResponse)
 async def process_query(request: QueryRequest) -> QueryResponse:
     """Run a query through the full multi-agent workflow (synchronous)."""
-    # ── Fast-path mock for UI testing ───────────────────────────────────
-    if request.mock:
-        return QueryResponse(
-            final_answer=(
-                "[MOCK] Based on the symptoms described, the differential diagnosis includes "
-                "upper respiratory tract infection, allergic rhinitis, and early-stage pneumonia. "
-                "Recommended: CBC, chest X-ray, and symptom monitoring for 48 hours.\n\n"
-                "⚕️ Disclaimer: This is for educational purposes only. "
-                "Always consult a qualified healthcare professional."
-            ),
-            reasoning_trace=[
-                "[Clinical Planner] Created 4-step diagnostic plan in 0.0s",
-                "[Medical Researcher] Retrieved 5 clinical docs from RAG in 0.0s",
-                "[Medical Reviewer] Score: 9/10 — APPROVED (0 issues) in 0.0s",
-                "[Medical Advisor] Generated clinical answer in 0.0s",
-            ],
-            token_stats={
-                "cache_hits": 2,
-                "cache_misses": 1,
-                "estimated_tokens_saved": 120,
-            },
-            latency_seconds=0.0,
-            retry_count=0,
-        )
-
     try:
         t0 = time.time()
-        result = run_workflow(query=request.query, mock=False)
+        result = run_workflow(query=request.query, mock=request.mock)
         elapsed = round(time.time() - t0, 2)
 
         return QueryResponse(
@@ -157,36 +132,8 @@ async def stream_query(
       - type: result — {final_answer, reasoning_trace, token_stats}
       - type: error — {message}
     """
-    if mock:
-        # Fast mock SSE stream
-        import json
-        import asyncio
-
-        async def mock_stream():
-            agents = [
-                ("planner", "[Planner] Decomposed query into 3 steps in 0.0s"),
-                ("researcher", "[Researcher] Retrieved 5 RAG documents in 0.0s"),
-                ("critic", "[Critic] Score: 8/10 — APPROVED (0 issues) in 0.0s"),
-                ("refiner", ""),
-                ("solver", "[Solver] Generated final answer in 0.0s"),
-            ]
-            for agent, detail in agents:
-                yield f"data: {json.dumps({'type': 'agent_update', 'agent': agent, 'status': 'running', 'detail': ''})}\n\n"
-                await asyncio.sleep(0.3)
-                status = "skipped" if agent == "refiner" else "done"
-                yield f"data: {json.dumps({'type': 'agent_update', 'agent': agent, 'status': status, 'detail': detail})}\n\n"
-                await asyncio.sleep(0.1)
-
-            yield f"data: {json.dumps({'type': 'result', 'final_answer': '[MOCK] Stub answer for UI testing.', 'reasoning_trace': [a[1] for a in agents if a[1]], 'token_stats': {'cache_hits': 2, 'cache_misses': 1, 'estimated_tokens_saved': 120}, 'retry_count': 0})}\n\n"
-
-        return StreamingResponse(
-            mock_stream(),
-            media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-        )
-
     def event_generator():
-        yield from run_workflow_streaming(query=q, mock=False)
+        yield from run_workflow_streaming(query=q, mock=mock)
 
     return StreamingResponse(
         event_generator(),
